@@ -1,13 +1,14 @@
 {
-  "name": "heladera-poetica",
+  "name": "poemario-vivo",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "partykit dev",
+    "start": "partykit dev",
     "deploy": "partykit deploy"
   },
   "dependencies": {
-    "partykit": "^0.0.95",
+    "partykit": "^0.0.108",
     "partysocket": "^1.0.3"
   }
 }
