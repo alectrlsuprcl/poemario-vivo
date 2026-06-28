@@ -1,0 +1,13 @@
+{
+  "name": "heladera-poetica",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy"
+  },
+  "dependencies": {
+    "partykit": "^0.0.95",
+    "partysocket": "^1.0.3"
+  }
+}

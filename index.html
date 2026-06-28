@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="La heladera de internet en español. Arrastra palabras, arma poemas, deja algo para los que lleguen después." />
+  <meta property="og:title" content="heladera poética" />
+  <meta property="og:description" content="Poesía colaborativa en tiempo real. Arrastra palabras en la heladera del internet." />
+  <title>poemario vivo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --fridge: #e8e4db;
+      --ink: #2a2520;
+      --ink-muted: #7a6e62;
+      --ink-faint: #a09890;
+      --header-bg: rgba(232,228,219,0.94);
+      --tile-shadow: 1px 2px 5px rgba(0,0,0,0.08);
+      --tile-shadow-hover: 2px 5px 12px rgba(0,0,0,0.15);
+      --tile-shadow-drag: 5px 12px 28px rgba(0,0,0,0.22);
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--fridge);
+      font-family: 'Georgia', serif;
+    }
+
+    /* ── Superficie de la heladera ── */
+    #surface {
+      position: fixed;
+      inset: 0;
+      background: var(--fridge);
+    }
+
+    /* ── Header ── */
+    #header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      background: var(--header-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(0,0,0,0.09);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    #header-text { flex: 1; min-width: 160px; }
+
+    #header h1 {
+      font-size: 15px;
+      font-weight: normal;
+      color: var(--ink);
+      line-height: 1.3;
+    }
+
+    #header h1 em {
+      font-style: italic;
+      color: var(--ink-muted);
+    }
+
+    #header p {
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      margin-top: 2px;
+      line-height: 1.5;
+    }
+
+    /* Contador de presencia */
+    #presence {
+      font-size: 11.5px;
+      color: var(--ink-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #presence-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #6ab04c;
+      flex-shrink: 0;
+    }
+
+    /* Formulario agregar palabra */
+    #add-form {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    #word-input {
+      border: 1px solid rgba(0,0,0,0.16);
+      border-radius: 4px;
+      padding: 5px 10px;
+      font-size: 13px;
+      font-family: 'Georgia', serif;
+      background: rgba(255,255,255,0.85);
+      color: var(--ink);
+      width: 150px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    #word-input:focus {
+      background: white;
+      border-color: rgba(0,0,0,0.28);
+    }
+
+    #add-btn {
+      padding: 5px 13px;
+      font-size: 12.5px;
+      font-family: 'Georgia', serif;
+      border: 1px solid rgba(0,0,0,0.16);
+      border-radius: 4px;
+      background: var(--ink);
+      color: #f0ece3;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    #add-btn:hover { background: #4a453f; }
+    #add-btn:active { background: #3a3530; transform: scale(0.97); }
+
+    /* ── Fichas de palabras ── */
+    .word-tile {
+      position: absolute;
+      padding: 4px 10px 5px;
+      font-family: 'Georgia', serif;
+      font-size: 15px;
+      line-height: 1.3;
+      color: var(--ink);
+      border: 1px solid rgba(0,0,0,0.11);
+      border-bottom: 2.5px solid rgba(0,0,0,0.14);
+      border-radius: 3px;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      box-shadow: var(--tile-shadow);
+      z-index: 10;
+      white-space: nowrap;
+      transition: box-shadow 0.12s, transform 0.12s;
+    }
+
+    .word-tile:hover {
+      box-shadow: var(--tile-shadow-hover);
+      z-index: 20;
+    }
+
+    .word-tile.is-dragging {
+      cursor: grabbing;
+      box-shadow: var(--tile-shadow-drag);
+      transform: rotate(1.3deg) scale(1.06);
+      z-index: 60;
+      transition: box-shadow 0.08s, transform 0.08s;
+    }
+
+    .word-tile.remote-move {
+      transition: left 0.2s ease, top 0.2s ease;
+    }
+
+    /* Variantes de color */
+    .c0 { background: #ffffff; }
+    .c1 { background: #fffdf4; }
+    .c2 { background: #f5f8ff; }
+    .c3 { background: #fff4f4; }
+    .c4 { background: #f4fff7; }
+    .c5 { background: #fbf4ff; }
+
+    /* ── Loading overlay ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--fridge);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 900;
+      font-size: 13px;
+      font-family: sans-serif;
+      color: var(--ink-muted);
+      transition: opacity 0.5s;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(42,37,32,0.88);
+      color: #f0ece3;
+      font-family: sans-serif;
+      font-size: 12px;
+      padding: 7px 18px;
+      border-radius: 20px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 500;
+      transition: opacity 0.28s, transform 0.28s;
+      white-space: nowrap;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Pista inferior ── */
+    #hint {
+      position: fixed;
+      bottom: 14px;
+      right: 20px;
+      font-size: 11px;
+      font-family: sans-serif;
+      color: rgba(120,110,100,0.6);
+      pointer-events: none;
+      z-index: 50;
+      transition: opacity 1.5s;
+    }
+
+    /* ── Responsive: mobile ── */
+    @media (max-width: 600px) {
+      #header { padding: 8px 12px; gap: 8px; }
+      #add-form { width: 100%; }
+      #word-input { flex: 1; width: auto; }
+      #header p { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="surface"></div>
+<div id="loading">conectando…</div>
+
+<header id="header">
+  <div id="header-text">
+    <h1>heladera poética &nbsp;<em>impulsada por playhtml</em></h1>
+    <p>arrastra palabras · arma poemas · deja algo para los que lleguen después</p>
+  </div>
+
+  <div id="presence">
+    <div id="presence-dot"></div>
+    <span id="presence-count">—</span>&nbsp;aquí ahora
+  </div>
+
+  <div id="add-form">
+    <input
+      id="word-input"
+      type="text"
+      maxlength="25"
+      placeholder="tu palabra…"
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <button id="add-btn" type="button">+ agregar</button>
+  </div>
+</header>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="hint" aria-hidden="true">arrastra · suelta · escribe</div>
+
+<script type="module">
+// ─────────────────────────────────────────────────────────────────────────────
+// heladera-poetica · frontend
+// Conecta al servidor PartyKit local (dev) o en producción (deploy).
+// Cambia HOST según tu usuario de PartyKit al hacer deploy.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import PartySocket from "https://esm.sh/partysocket@1.0.3";
+
+// ⚠️  Cambia esto después de hacer `npx partykit deploy`:
+//     "TU_USUARIO-heladera-poetica.TU_USUARIO.partykit.dev"
+const PARTYKIT_HOST = location.hostname === "localhost" || location.hostname === "127.0.0.1"
+  ? "localhost:1999"
+  : "TU_USUARIO-heladera-poetica.TU_USUARIO.partykit.dev";
+
+const ROOM   = "heladera-principal";
+const COLORS = ["c0","c1","c2","c3","c4","c5"];
+
+// ── Palabras por defecto (el servidor las persiste tras el primer seed) ───────
+const PALABRAS_DEFAULT = [
+  "amor","luna","mar","viento","alma","luz","tiempo","noche","agua","tierra",
+  "fuego","cielo","sombra","río","flor","piedra","mano","ojo","voz","sangre",
+  "silencio","sueño","memoria","cuerpo","corazón","nombre","tarde","lluvia",
+  "árbol","camino","estrella","ciudad","casa","puerta","ventana","espejo",
+  "piel","miedo","soledad","abrazo","vuelo","olvido","deseo","regreso",
+  "mientras","quizás","nunca","siempre","también","todavía","porque","aunque",
+  "entre","sobre","dentro","lejos","cerca","después","antes","tal vez",
+  "yo","tú","él","ella","nosotros","nadie","alguien","todo","nada",
+  "el","la","los","las","un","una","de","en","con","sin","y","pero","o",
+  "que","no","sí","más","muy","ya","aquí","allí","cuando","donde",
+];
+
+function makeDefaultWords() {
+  const cols = Math.floor((window.innerWidth - 60) / 100) || 12;
+  return PALABRAS_DEFAULT.map((word, i) => ({
+    id: `init-${i}`,
+    word,
+    x: 52 + (i % cols) * 100 + (Math.floor(i / cols) % 2) * 10,
+    y: 68 + Math.floor(i / cols) * 44 + (i % 3) * 3,
+    color: COLORS[i % COLORS.length],
+  }));
+}
+
+// ── Estado ────────────────────────────────────────────────────────────────────
+let words   = {};    // id → FridgeWord
+let wordEls = {};    // id → HTMLElement
+let myId    = crypto.randomUUID();
+let currentDragId = null;
+
+// ── DOM ───────────────────────────────────────────────────────────────────────
+const presenceEl = document.getElementById("presence-count");
+const loadingEl  = document.getElementById("loading");
+
+// ── Conexión PartyKit ─────────────────────────────────────────────────────────
+const socket = new PartySocket({ host: PARTYKIT_HOST, room: ROOM });
+
+socket.addEventListener("open", () => {
+  socket.send(JSON.stringify({ type: "join", clientId: myId }));
+});
+
+socket.addEventListener("message", (e) => {
+  const msg = JSON.parse(e.data);
+
+  switch (msg.type) {
+    case "init": {
+      if (msg.words && msg.words.length > 0) {
+        // Estado existente del servidor
+        words = {};
+        msg.words.forEach(w => { words[w.id] = w; });
+        renderAll();
+      } else {
+        // Sala nueva — sembrar con palabras por defecto
+        const defaults = makeDefaultWords();
+        defaults.forEach(w => { words[w.id] = w; });
+        socket.send(JSON.stringify({ type: "seed", words: defaults }));
+        renderAll();
+      }
+      hideLoading();
+      break;
+    }
+
+    case "state": {
+      words = {};
+      msg.words.forEach(w => { words[w.id] = w; });
+      renderAll();
+      break;
+    }
+
+    case "move": {
+      if (!words[msg.id]) break;
+      words[msg.id].x = msg.x;
+      words[msg.id].y = msg.y;
+      const el = wordEls[msg.id];
+      if (el && msg.from !== myId) {
+        el.classList.add("remote-move");
+        el.style.left = msg.x + "px";
+        el.style.top  = msg.y + "px";
+        setTimeout(() => el.classList.remove("remote-move"), 250);
+      }
+      break;
+    }
+
+    case "add": {
+      words[msg.word.id] = msg.word;
+      spawnTile(msg.word);
+      break;
+    }
+
+    case "delete": {
+      if (wordEls[msg.id]) { wordEls[msg.id].remove(); delete wordEls[msg.id]; }
+      delete words[msg.id];
+      break;
+    }
+
+    case "presence": {
+      presenceEl.textContent = msg.count;
+      break;
+    }
+  }
+});
+
+socket.addEventListener("error", () => {
+  // Modo offline — funciona localmente sin sincronización
+  const defaults = makeDefaultWords();
+  defaults.forEach(w => { words[w.id] = w; });
+  renderAll();
+  hideLoading();
+  showToast("sin conexión — los cambios solo son tuyos por ahora");
+});
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+  Object.values(words).forEach(spawnTile);
+}
+
+function spawnTile(w) {
+  if (wordEls[w.id]) return; // ya existe
+
+  const el = document.createElement("div");
+  el.className = `word-tile ${w.color || "c0"}`;
+  el.textContent = w.word;
+  el.style.left = w.x + "px";
+  el.style.top  = w.y + "px";
+  document.body.appendChild(el);
+  wordEls[w.id] = el;
+  makeDraggable(el, w.id);
+
+  // Doble click → eliminar (solo en desktop)
+  el.addEventListener("dblclick", () => deleteWord(w.id));
+}
+
+function deleteWord(id) {
+  if (wordEls[id]) { wordEls[id].remove(); delete wordEls[id]; }
+  delete words[id];
+  socket.send(JSON.stringify({ type: "delete", id }));
+  showToast("palabra eliminada");
+}
+
+// ── Drag ──────────────────────────────────────────────────────────────────────
+function makeDraggable(el, id) {
+  let startX, startY, originLeft, originTop;
+
+  function onStart(cx, cy) {
+    startX = cx; startY = cy;
+    originLeft = parseFloat(el.style.left) || 0;
+    originTop  = parseFloat(el.style.top)  || 0;
+    el.classList.add("is-dragging");
+    currentDragId = id;
+  }
+
+  function onMove(cx, cy) {
+    const x = originLeft + (cx - startX);
+    const y = originTop  + (cy - startY);
+    el.style.left = x + "px";
+    el.style.top  = y + "px";
+  }
+
+  function onEnd() {
+    el.classList.remove("is-dragging");
+    currentDragId = null;
+    const x = parseFloat(el.style.left);
+    const y = parseFloat(el.style.top);
+    if (words[id]) { words[id].x = x; words[id].y = y; }
+    socket.send(JSON.stringify({ type: "move", id, x, y, from: myId }));
+  }
+
+  // ── Mouse ──
+  el.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    onStart(e.clientX, e.clientY);
+    const move = (e2) => onMove(e2.clientX, e2.clientY);
+    const up   = () => { onEnd(); window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up); };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  });
+
+  // ── Touch ──
+  el.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    onStart(e.touches[0].clientX, e.touches[0].clientY);
+    const move = (e2) => { e2.preventDefault(); onMove(e2.touches[0].clientX, e2.touches[0].clientY); };
+    const end  = () => { onEnd(); window.removeEventListener("touchmove", move); window.removeEventListener("touchend", end); };
+    window.addEventListener("touchmove", move, { passive: false });
+    window.addEventListener("touchend", end);
+  }, { passive: false });
+}
+
+// ── Agregar palabra ───────────────────────────────────────────────────────────
+const input  = document.getElementById("word-input");
+const addBtn = document.getElementById("add-btn");
+
+function addWord() {
+  const raw = input.value.trim().toLowerCase();
+  if (!raw) { input.focus(); return; }
+  if (raw.length > 25) { showToast("muy larga — máximo 25 letras"); return; }
+  if (raw.split(" ").length > 3) { showToast("máximo 3 palabras por ficha"); return; }
+
+  const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const w = {
+    id: `u-${myId.slice(0,8)}-${Date.now()}`,
+    word: raw,
+    x: 80 + Math.random() * Math.max(100, window.innerWidth  - 280),
+    y: 80 + Math.random() * Math.max(60,  window.innerHeight - 220),
+    color,
+  };
+
+  words[w.id] = w;
+  spawnTile(w);
+  socket.send(JSON.stringify({ type: "add", word: w }));
+  input.value = "";
+  showToast(`"${w.word}" pegada en la heladera ✓`);
+  input.focus();
+}
+
+addBtn.addEventListener("click", addWord);
+input.addEventListener("keydown", (e) => { if (e.key === "Enter") addWord(); });
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2500);
+}
+
+function hideLoading() {
+  loadingEl.style.opacity = "0";
+  setTimeout(() => loadingEl.remove(), 600);
+}
+
+// Ocultar pista a los 5 segundos
+setTimeout(() => {
+  const hint = document.getElementById("hint");
+  if (hint) { hint.style.opacity = "0"; setTimeout(() => hint?.remove(), 1600); }
+}, 5000);
+</script>
+</body>
+</html>
