@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="description" content="La heladera de internet en español. Arrastra palabras, arma poemas, deja algo para los que lleguen después." />
-  <meta property="og:title" content="heladera poética" />
-  <meta property="og:description" content="Poesía colaborativa en tiempo real. Arrastra palabras en la heladera del internet." />
+  <meta name="description" content="El poemario de internet en español. Arrastra palabras, arma poemas, deja algo para los que lleguen después." />
+  <meta property="og:title" content="poemario vivo" />
+  <meta property="og:description" content="Poesía colaborativa en tiempo real. Arrastra palabras en el poemario del internet." />
   <title>poemario vivo</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,7 +30,7 @@
       touch-action: pinch-zoom;
     }
 
-    /* ── Superficie de la heladera con zoom ── */
+    /* ── Superficie del poemario con zoom ── */
     #surface {
       position: fixed;
       inset: 0;
@@ -457,7 +457,7 @@
 
 <header id="header">
   <div id="header-text">
-    <h1>heladera poética &nbsp;<em>impulsada por playhtml</em></h1>
+    <h1>poemario vivo &nbsp;<em>impulsado por playhtml</em></h1>
     <p>arrastra palabras · arma poemas · deja algo para los que lleguen después</p>
   </div>
 
@@ -494,7 +494,7 @@
   <div id="modal" role="dialog" aria-labelledby="modal-title">
     <button id="modal-close" aria-label="Cerrar">&times;</button>
     <h2 id="modal-title">cómo usar</h2>
-    <p>la heladera poética es un espacio colaborativo en internet donde todos podemos dejar algo.</p>
+    <p>poemario vivo es un espacio colaborativo en internet donde todos podemos dejar algo.</p>
     
     <h3 style="font-size: 14px; color: var(--ink); margin-top: 16px; margin-bottom: 8px; font-weight: normal;">básico</h3>
     <ul>
@@ -513,7 +513,7 @@
     <ul>
       <li>los poemas que dejes quedan guardados</li>
       <li>cuando vuelvas, verás todo como lo dejaste</li>
-      <li>otras personas en la heladera ahora mismo verán tus cambios en tiempo real</li>
+      <li>otras personas en el poemario ahora mismo verán tus cambios en tiempo real</li>
     </ul>
 
     <p style="margin-top: 16px; font-size: 12px; color: var(--ink-faint);">sé amable · somos personas reales del otro lado de la pantalla</p>
@@ -522,7 +522,7 @@
 
 <script type="module">
 // ─────────────────────────────────────────────────────────────────────────────
-// heladera-poetica · frontend
+// poemario vivo · frontend
 // Conecta al servidor PartyKit local (dev) o en producción (deploy).
 // Cambia HOST según tu usuario de PartyKit al hacer deploy.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -535,7 +535,7 @@ const PARTYKIT_HOST = location.hostname === "localhost" || location.hostname ===
   ? "localhost:1999"
   : "poemario-vivo-production.up.railway.app";
 
-const ROOM   = "heladera-principal";
+const ROOM   = "poemario-vivo-principal";
 const COLORS = ["c0","c1","c2","c3","c4","c5"];
 
 // ── Palabras por defecto (el servidor las persiste tras el primer seed) ───────
@@ -766,7 +766,7 @@ function addWord() {
   spawnTile(w);
   socket.send(JSON.stringify({ type: "add", word: w }));
   input.value = "";
-  showToast(`"${w.word}" pegada en la heladera ✓`);
+  showToast(`"${w.word}" pegada en el poemario ✓`);
   input.focus();
 }
 

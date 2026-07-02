@@ -1,9 +1,9 @@
-// server.ts — PartyKit server para heladera-poetica
+// server.ts — PartyKit server para poemario vivo
 // Maneja: estado persistente de palabras, broadcast de movimientos, presencia
 
 import type * as Party from "partykit/server";
 
-// Tipado de una palabra en la heladera
+// Tipado de una palabra en el poemario
 interface FridgeWord {
   id: string;
   word: string;

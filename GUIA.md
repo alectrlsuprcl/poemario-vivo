@@ -1,4 +1,4 @@
-# heladera poética — guía completa
+# poemario vivo — guía completa
 ## desde cero hasta publicado en internet
 
 ---
@@ -37,11 +37,11 @@ Instala esto antes de empezar:
 
 ### paso 1: abrir la carpeta en VS Code
 
-Tienes la carpeta `heladera-poetica/` con estos archivos:
+Tienes la carpeta `poemario-vivo/` con estos archivos:
 
 ```
-heladera-poetica/
-├── index.html          ← frontend (la heladera)
+poemario-vivo/
+├── index.html          ← frontend (el poemario)
 ├── src/
 │   └── server.ts       ← servidor PartyKit (persistencia + tiempo real)
 ├── partykit.json       ← configuración del servidor
@@ -49,7 +49,7 @@ heladera-poetica/
 └── .gitignore
 ```
 
-En VS Code: `Archivo → Abrir carpeta` → selecciona `heladera-poetica/`
+En VS Code: `Archivo → Abrir carpeta` → selecciona `poemario-vivo/`
 
 ### paso 2: instalar dependencias
 
@@ -74,7 +74,7 @@ Deberías ver algo así:
   http://localhost:1999
 ```
 
-### paso 4: abrir la heladera en el browser
+### paso 4: abrir el poemario en el browser
 
 Abre `index.html` directamente en el browser — pero para que PartyKit
 funcione en local, necesitas servirlo con un servidor simple.
@@ -87,7 +87,7 @@ npx serve . --port 3000
 
 Luego abre: http://localhost:3000
 
-Deberías ver las palabras en la heladera. Si abres la misma URL en dos
+Deberías ver las palabras en el poemario. Si abres la misma URL en dos
 pestañas, mover una palabra en una pestaña la mueve en la otra.
 
 ---
@@ -116,8 +116,8 @@ npx partykit deploy
 Al terminar, verás algo así:
 
 ```
-✓ Deployed heladera-poetica to:
-  https://heladera-poetica.TU_USUARIO.partykit.dev
+✓ Deployed poemario-vivo to:
+  https://poemario-vivo.TU_USUARIO.partykit.dev
 ```
 
 Guarda esa URL — la necesitas en el siguiente paso.
@@ -133,13 +133,13 @@ Abre `index.html` en VS Code. Busca esta línea (está en el `<script>`):
 ```javascript
 const PARTYKIT_HOST = location.hostname === "localhost" || location.hostname === "127.0.0.1"
   ? "localhost:1999"
-  : "TU_USUARIO-heladera-poetica.TU_USUARIO.partykit.dev";
+  : "TU_USUARIO-poemario-vivo.TU_USUARIO.partykit.dev";
 ```
 
 Reemplaza `TU_USUARIO` con tu nombre de usuario de PartyKit. Ejemplo:
 
 ```javascript
-  : "alexander-heladera-poetica.alexander.partykit.dev";
+  : "alexander-poemario-vivo.alexander.partykit.dev";
 ```
 
 Guarda el archivo (`Ctrl+S`).
@@ -155,14 +155,14 @@ En la terminal de VS Code:
 ```bash
 git init
 git add .
-git commit -m "heladera poética v1"
+git commit -m "poemario vivo v1"
 ```
 
-Luego crea un repositorio en https://github.com/new (nombre: `heladera-poetica`)
+Luego crea un repositorio en https://github.com/new (nombre: `poemario-vivo`)
 y sigue las instrucciones que te muestra GitHub para conectarlo:
 
 ```bash
-git remote add origin https://github.com/TU_USUARIO_GITHUB/heladera-poetica.git
+git remote add origin https://github.com/TU_USUARIO_GITHUB/poemario-vivo.git
 git branch -M main
 git push -u origin main
 ```
@@ -171,7 +171,7 @@ git push -u origin main
 
 1. Ve a https://app.netlify.com → `Add new site → Import an existing project`
 2. Elige `GitHub` y autoriza Netlify
-3. Selecciona el repo `heladera-poetica`
+3. Selecciona el repo `poemario-vivo`
 4. En la configuración del deploy:
    - **Build command:** (dejar vacío)
    - **Publish directory:** `.` (un punto)
@@ -184,8 +184,8 @@ Netlify le asigna una URL automática tipo:
 
 En Netlify: `Site configuration → Domain management → Options → Edit site name`
 
-Puedes ponerle algo como `heladera-poetica` para obtener:
-`https://heladera-poetica.netlify.app`
+Pudes ponerle algo como `poemario-vivo` para obtener:
+188:`https://poemario-vivo.netlify.app`
 
 ---
 
@@ -211,7 +211,7 @@ Puedes ponerle algo como `heladera-poetica` para obtener:
 **Comunidades técnico-creativas:**
 - Are.na (arena.io) — comparte el link en un channel de arte digital o web experiments
 - Mastodon / Fediverse — etiquetas útiles: #indieweb #smallweb #creativecoding
-- Hacker News — "Show HN: heladera poética, fridge poetry collab en español"
+- Hacker News — "Show HN: poemario vivo, fridge poetry collab en español"
 - Product Hunt — lánzalo como proyecto el día que esté pulido
 
 **Comunidades en español:**
@@ -221,13 +221,13 @@ Puedes ponerle algo como `heladera-poetica` para obtener:
 
 **Approach de Spencer Chang (el creador del original):**
 - Comparte el link con un poema que armaste tú mismo como primera demostración
-- Invita a personas específicas a dejar algo — la primera actividad en la heladera
+- Invita a personas específicas a dejar algo — la primera actividad en el poemario
   importa mucho para que no parezca una pantalla vacía
 
 ### idea de lanzamiento
 
 Comparte algo así:
-> "armé una heladera de poesía colaborativa para internet en español 🧲
+> "armé un poemario de poesía colaborativa para internet en español 🧲
 > cualquiera puede arrastrar palabras y dejar algo para los que lleguen después
 > → [link]"
 
@@ -243,8 +243,8 @@ Para hacer el GIF: usa Giphy Capture (Mac) o ScreenToGif (Windows).
 En `index.html`, encuentra el array `PALABRAS_DEFAULT` y edítalo libremente.
 
 Para resetear el estado del servidor (borrar palabras y empezar desde cero):
-cambia el nombre del room en `const ROOM = "heladera-principal"` a otro nombre,
-por ejemplo `"heladera-v2"`.
+cambia el nombre del room en `const ROOM = "poemario-vivo-principal"` a otro nombre,
+por ejemplo `"poemario-vivo-v2"`.
 
 ### agregar dominio propio
 
@@ -257,7 +257,7 @@ Agrega esto a `partykit.json` si el browser bloquea la conexión:
 
 ```json
 {
-  "name": "heladera-poetica",
+  "name": "poemario-vivo",
   "main": "src/server.ts",
   "compatibilityDate": "2024-01-01",
   "parties": {
@@ -282,8 +282,8 @@ npx partykit deploy   # publicar servidor a PartyKit Cloud
 ## estructura final del proyecto
 
 ```
-heladera-poetica/
-├── index.html          ← la heladera (frontend completo en un archivo)
+poemario-vivo/
+├── index.html          ← el poemario (frontend completo en un archivo)
 ├── src/
 │   └── server.ts       ← lógica del servidor (persistencia + broadcast)
 ├── partykit.json       ← config PartyKit
