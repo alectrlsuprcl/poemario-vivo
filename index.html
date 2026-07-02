@@ -54,6 +54,7 @@
       padding: 10px 20px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 16px;
       flex-wrap: wrap;
     }
@@ -233,10 +234,7 @@
 
     /* ── Help button ── */
     #help-btn {
-      position: fixed;
-      top: 12px;
-      right: 20px;
-      z-index: 300;
+      flex-shrink: 0;
       width: 32px;
       height: 32px;
       border-radius: 50%;
@@ -479,11 +477,11 @@
     />
     <button id="add-btn" type="button">+ agregar</button>
   </div>
+
+  <button id="help-btn" title="Cómo usar" aria-label="Instrucciones">?</button>
 </header>
 
 <div id="toast" role="status" aria-live="polite"></div>
-
-<button id="help-btn" title="Cómo usar" aria-label="Instrucciones">?</button>
 
 <div id="zoom-controls">
   <button class="zoom-btn" id="zoom-out" title="Alejar (−)">−</button>
@@ -555,12 +553,13 @@ const PALABRAS_DEFAULT = [
 ];
 
 function makeDefaultWords() {
-  const cols = Math.floor((window.innerWidth - 60) / 100) || 12;
+  const cols = Math.min(PALABRAS_DEFAULT.length, Math.max(3, Math.floor((window.innerWidth - 100) / 140)));
+  const gutter = Math.max(14, Math.floor((window.innerWidth - cols * 120) / (cols + 1)));
   return PALABRAS_DEFAULT.map((word, i) => ({
     id: `init-${i}`,
     word,
-    x: 52 + (i % cols) * 100 + (Math.floor(i / cols) % 2) * 10,
-    y: 68 + Math.floor(i / cols) * 44 + (i % 3) * 3,
+    x: gutter + (i % cols) * (120 + gutter),
+    y: 110 + Math.floor(i / cols) * 56 + (i % 3) * 2,
     color: COLORS[i % COLORS.length],
   }));
 }
@@ -574,6 +573,7 @@ let currentDragId = null;
 // ── DOM ───────────────────────────────────────────────────────────────────────
 const presenceEl = document.getElementById("presence-count");
 const loadingEl  = document.getElementById("loading");
+const surface    = document.getElementById("surface");
 
 // ── Conexión PartyKit ─────────────────────────────────────────────────────────
 const socket = new PartySocket({ host: PARTYKIT_HOST, room: ROOM });
@@ -665,7 +665,7 @@ function spawnTile(w) {
   el.textContent = w.word;
   el.style.left = w.x + "px";
   el.style.top  = w.y + "px";
-  document.body.appendChild(el);
+  surface.appendChild(el);
   wordEls[w.id] = el;
   makeDraggable(el, w.id);
 
@@ -684,8 +684,18 @@ function deleteWord(id) {
 function makeDraggable(el, id) {
   let startX, startY, originLeft, originTop;
 
+  function getContentPoint(clientX, clientY) {
+    const rect = surface.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) / currentZoom + surface.scrollLeft,
+      y: (clientY - rect.top) / currentZoom + surface.scrollTop,
+    };
+  }
+
   function onStart(cx, cy) {
-    startX = cx; startY = cy;
+    const point = getContentPoint(cx, cy);
+    startX = point.x;
+    startY = point.y;
     originLeft = parseFloat(el.style.left) || 0;
     originTop  = parseFloat(el.style.top)  || 0;
     el.classList.add("is-dragging");
@@ -693,8 +703,9 @@ function makeDraggable(el, id) {
   }
 
   function onMove(cx, cy) {
-    const x = originLeft + (cx - startX);
-    const y = originTop  + (cy - startY);
+    const point = getContentPoint(cx, cy);
+    const x = originLeft + (point.x - startX);
+    const y = originTop  + (point.y - startY);
     el.style.left = x + "px";
     el.style.top  = y + "px";
   }
@@ -741,11 +752,13 @@ function addWord() {
   if (raw.split(" ").length > 3) { showToast("máximo 3 palabras por ficha"); return; }
 
   const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  const visibleWidth = Math.max(160, surface.clientWidth - 220);
+  const visibleHeight = Math.max(120, surface.clientHeight - 260);
   const w = {
     id: `u-${myId.slice(0,8)}-${Date.now()}`,
     word: raw,
-    x: 80 + Math.random() * Math.max(100, window.innerWidth  - 280),
-    y: 80 + Math.random() * Math.max(60,  window.innerHeight - 220),
+    x: surface.scrollLeft + 80 + Math.random() * visibleWidth,
+    y: surface.scrollTop + 120 + Math.random() * visibleHeight,
     color,
   };
 
