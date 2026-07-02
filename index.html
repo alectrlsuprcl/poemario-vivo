@@ -19,6 +19,7 @@
       --tile-shadow: 1px 2px 5px rgba(0,0,0,0.08);
       --tile-shadow-hover: 2px 5px 12px rgba(0,0,0,0.15);
       --tile-shadow-drag: 5px 12px 28px rgba(0,0,0,0.22);
+      --zoom: 1;
     }
 
     html, body {
@@ -26,13 +27,19 @@
       overflow: hidden;
       background: var(--fridge);
       font-family: 'Georgia', serif;
+      touch-action: pinch-zoom;
     }
 
-    /* ── Superficie de la heladera ── */
+    /* ── Superficie de la heladera con zoom ── */
     #surface {
       position: fixed;
       inset: 0;
       background: var(--fridge);
+      overflow: auto;
+      transform: scale(var(--zoom));
+      transform-origin: 0 0;
+      width: calc(100% / var(--zoom));
+      height: calc(100% / var(--zoom));
     }
 
     /* ── Header ── */
@@ -177,6 +184,213 @@
     .c4 { background: #f4fff7; }
     .c5 { background: #fbf4ff; }
 
+    /* ── Zoom controls ── */
+    #zoom-controls {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 400;
+      display: flex;
+      gap: 8px;
+      background: rgba(58,53,48,0.9);
+      padding: 8px;
+      border-radius: 8px;
+    }
+
+    .zoom-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1);
+      color: #f0ece3;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .zoom-btn:hover {
+      background: rgba(255,255,255,0.2);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    .zoom-btn:active {
+      transform: scale(0.95);
+    }
+
+    #zoom-level {
+      min-width: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #f0ece3;
+      font-family: monospace;
+    }
+
+    /* ── Help button ── */
+    #help-btn {
+      position: fixed;
+      top: 12px;
+      right: 20px;
+      z-index: 300;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,0.2);
+      background: rgba(255,255,255,0.9);
+      color: var(--ink);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      font-weight: bold;
+    }
+
+    #help-btn:hover {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    /* ── Modal overlay ── */
+    #modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    #modal-overlay.show {
+      display: flex;
+      opacity: 1;
+    }
+
+    /* ── Modal content ── */
+    #modal {
+      background: var(--header-bg);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      transform: scale(0.95);
+      transition: transform 0.3s;
+    }
+
+    #modal-overlay.show #modal {
+      transform: scale(1);
+    }
+
+    #modal h2 {
+      font-size: 18px;
+      color: var(--ink);
+      margin-bottom: 12px;
+      font-weight: normal;
+    }
+
+    #modal p {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-muted);
+      margin-bottom: 12px;
+    }
+
+    #modal ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 16px;
+    }
+
+    #modal li {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink-muted);
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    #modal li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--ink-faint);
+    }
+
+    #modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 0;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #modal-close:hover {
+      color: var(--ink-muted);
+    }
+
+    /* ── Responsive zoom controls ── */
+    @media (max-width: 600px) {
+      #zoom-controls {
+        bottom: 12px;
+        left: 12px;
+        padding: 6px;
+      }
+
+      .zoom-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+
+      #zoom-level {
+        font-size: 11px;
+        min-width: 40px;
+      }
+
+      #help-btn {
+        top: 8px;
+        right: 12px;
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+
+      #modal {
+        padding: 16px;
+      }
+
+      #modal h2 {
+        font-size: 16px;
+      }
+
+      #modal p, #modal li {
+        font-size: 12px;
+      }
+    }
+
     /* ── Loading overlay ── */
     #loading {
       position: fixed;
@@ -268,7 +482,45 @@
 </header>
 
 <div id="toast" role="status" aria-live="polite"></div>
-<div id="hint" aria-hidden="true">arrastra · suelta · escribe</div>
+
+<button id="help-btn" title="Cómo usar" aria-label="Instrucciones">?</button>
+
+<div id="zoom-controls">
+  <button class="zoom-btn" id="zoom-out" title="Alejar (−)">−</button>
+  <div id="zoom-level">100%</div>
+  <button class="zoom-btn" id="zoom-in" title="Acercar (+)">+</button>
+</div>
+
+<!-- Modal de instrucciones -->
+<div id="modal-overlay">
+  <div id="modal" role="dialog" aria-labelledby="modal-title">
+    <button id="modal-close" aria-label="Cerrar">&times;</button>
+    <h2 id="modal-title">cómo usar</h2>
+    <p>la heladera poética es un espacio colaborativo en internet donde todos podemos dejar algo.</p>
+    
+    <h3 style="font-size: 14px; color: var(--ink); margin-top: 16px; margin-bottom: 8px; font-weight: normal;">básico</h3>
+    <ul>
+      <li><strong>arrastra palabras</strong> — toca y mueve cualquier ficha</li>
+      <li><strong>arma poemas</strong> — combina palabras para crear algo nuevo</li>
+      <li><strong>agrega las tuyas</strong> — escribe en el campo y haz click en "agregar"</li>
+    </ul>
+
+    <h3 style="font-size: 14px; color: var(--ink); margin-top: 16px; margin-bottom: 8px; font-weight: normal;">zoom</h3>
+    <ul>
+      <li><strong>desktop</strong> — usa Ctrl+rueda del mouse, o los botones +/−</li>
+      <li><strong>mobile</strong> — pinch (abre dos dedos) para zoom</li>
+    </ul>
+
+    <h3 style="font-size: 14px; color: var(--ink); margin-top: 16px; margin-bottom: 8px; font-weight: normal;">persistencia</h3>
+    <ul>
+      <li>los poemas que dejes quedan guardados</li>
+      <li>cuando vuelvas, verás todo como lo dejaste</li>
+      <li>otras personas en la heladera ahora mismo verán tus cambios en tiempo real</li>
+    </ul>
+
+    <p style="margin-top: 16px; font-size: 12px; color: var(--ink-faint);">sé amable · somos personas reales del otro lado de la pantalla</p>
+  </div>
+</div>
 
 <script type="module">
 // ─────────────────────────────────────────────────────────────────────────────
@@ -283,7 +535,7 @@ import PartySocket from "https://esm.sh/partysocket@1.0.3";
 //     "TU_USUARIO-heladera-poetica.TU_USUARIO.partykit.dev"
 const PARTYKIT_HOST = location.hostname === "localhost" || location.hostname === "127.0.0.1"
   ? "localhost:1999"
-  : "poemario-vivo-production.up.railway.app";
+  : "TU_USUARIO-heladera-poetica.TU_USUARIO.partykit.dev";
 
 const ROOM   = "heladera-principal";
 const COLORS = ["c0","c1","c2","c3","c4","c5"];
@@ -523,11 +775,81 @@ function hideLoading() {
   setTimeout(() => loadingEl.remove(), 600);
 }
 
-// Ocultar pista a los 5 segundos
-setTimeout(() => {
-  const hint = document.getElementById("hint");
-  if (hint) { hint.style.opacity = "0"; setTimeout(() => hint?.remove(), 1600); }
-}, 5000);
+// ── Zoom controls ─────────────────────────────────────────────────────────────
+let currentZoom = 1;
+const root = document.documentElement;
+const zoomInBtn = document.getElementById("zoom-in");
+const zoomOutBtn = document.getElementById("zoom-out");
+const zoomLevelDisplay = document.getElementById("zoom-level");
+
+function setZoom(level) {
+  currentZoom = Math.max(0.5, Math.min(2, level)); // limitar entre 50% y 200%
+  root.style.setProperty("--zoom", currentZoom);
+  zoomLevelDisplay.textContent = Math.round(currentZoom * 100) + "%";
+}
+
+zoomInBtn.addEventListener("click", () => setZoom(currentZoom + 0.1));
+zoomOutBtn.addEventListener("click", () => setZoom(currentZoom - 0.1));
+
+// ── Zoom con rueda (desktop) ──
+document.addEventListener("wheel", (e) => {
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(currentZoom + delta);
+  }
+}, { passive: false });
+
+// ── Zoom con pinch (mobile) ──
+let lastDistance = 0;
+document.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (lastDistance > 0) {
+      const ratio = distance / lastDistance;
+      if (ratio > 1.01) {
+        setZoom(currentZoom + 0.05); // zoom in
+      } else if (ratio < 0.99) {
+        setZoom(currentZoom - 0.05); // zoom out
+      }
+    }
+    lastDistance = distance;
+    e.preventDefault();
+  }
+}, { passive: false });
+
+document.addEventListener("touchend", () => {
+  lastDistance = 0;
+});
+
+// ── Modal instructions ─────────────────────────────────────────────────────────
+const helpBtn = document.getElementById("help-btn");
+const modalOverlay = document.getElementById("modal-overlay");
+const modalClose = document.getElementById("modal-close");
+
+helpBtn.addEventListener("click", () => {
+  modalOverlay.classList.add("show");
+});
+
+modalClose.addEventListener("click", () => {
+  modalOverlay.classList.remove("show");
+});
+
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) {
+    modalOverlay.classList.remove("show");
+  }
+});
+
+// Cerrar modal con Escape
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && modalOverlay.classList.contains("show")) {
+    modalOverlay.classList.remove("show");
+  }
+});
 </script>
 </body>
 </html>
