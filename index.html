@@ -351,10 +351,16 @@
 
     /* ── Responsive zoom controls ── */
     @media (max-width: 600px) {
+      #surface {
+        padding-top: calc(72px / var(--zoom));
+        min-width: calc(160vw / var(--zoom));
+        min-height: calc(160vh / var(--zoom));
+        padding-right: 80px;
+        padding-bottom: 80px;
+      }
+
       #zoom-controls {
-        bottom: 12px;
-        left: 12px;
-        padding: 6px;
+        display: none;
       }
 
       .zoom-btn {
